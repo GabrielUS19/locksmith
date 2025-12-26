@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: bitnami/postgresql
+    container_name: locksmith_pg
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=gabrielus19
+      - POSTGRES_PASSWORD=admin123
+      - POSTGRES_DB=locksmith
+    volumes:
+      - locksmith_pg_data:/bitnami/postgresql
+
+volumes:
+  locksmith_pg_data:
