@@ -12,3 +12,25 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id            String  @id @default(uuid()) @db.VarChar(36)
+  name          String
+  email         String  @unique
+  password      String  @db.VarChar(255)
+  refreshToken  RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken{
+  id String @id @default(uuid()) @db.VarChar(36)
+  token String
+  userID String
+  user User @relation(fields: [userID], references: [id], onDelete: Cascade)
+
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
