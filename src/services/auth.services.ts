@@ -1,7 +1,7 @@
 import { User } from "@prisma/client";
 import { prisma } from "../lib/prisma.js";
 import { RegisterUserDTO } from "../utils/auth.schemas.js";
-import { AppError } from "../utils/app.error.js";
+import { AppError } from "../errors/app.error.js";
 import bcrypt from "bcrypt";
 
 export class RegisterService {
@@ -14,7 +14,7 @@ export class RegisterService {
     });
 
     if (userExists) {
-      throw new AppError("Usuário já cadastrado");
+      throw new AppError("Erro no cadastro", 409, ["User already exists"]);
     }
 
     const hashPassword = await bcrypt.hash(data.password, 10);

@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { passwordSchema } from "./zod.schemas.js";
-import { register } from "node:module";
 
 export const createRegisterSchema = z
   .object({
