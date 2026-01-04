@@ -1,13 +1,29 @@
 import { Request, Response } from "express";
-import { RegisterService } from "../services/auth.services.js";
-import { type RegisterUserDTO } from "../utils/auth.schemas.js";
+import { LoginService, RegisterService } from "../services/auth.services.js";
+import type { LoginUserDTO, RegisterUserDTO } from "../utils/auth.schemas.js";
 
 export default class AuthController {
   public login = async (req: Request, res: Response): Promise<void> => {
-    res.status(200).json({ message: "Hello" });
+    const data: LoginUserDTO = req.body;
+
+    const loginService = new LoginService();
+    const { accessToken, rawToken, expiresAt } =
+      await loginService.execute(data);
+
+    res.cookie("refreshToken", rawToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      expires: expiresAt,
+    });
+
+    res
+      .status(200)
+      .json({ message: `Bem vindo de volta`, accessToken: accessToken });
   };
 
-  public register = async (req: Request, res: Response): Promise<any> => {
+  // Controller da rota de registro
+  public register = async (req: Request, res: Response): Promise<void> => {
     const data: RegisterUserDTO = req.body;
 
     const registerService = new RegisterService();

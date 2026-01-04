@@ -1,3 +1,5 @@
+import "dotenv/config";
+import cookieParser from "cookie-parser";
 import express, { type Response, type Request } from "express";
 import authRoutes from "./routes/auth.routes.js";
 import { errorHandler } from "./middlewares/errorHandler.middleware.js";
@@ -6,6 +8,13 @@ const app = express();
 
 // Middlewares
 app.use(express.json());
+app.use(cookieParser());
+
+app.get("/test", (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+
+  console.log(refreshToken);
+});
 
 // Routes
 app.use("/auth", authRoutes);
@@ -15,10 +24,11 @@ app.use((req: Request, res: Response): void => {
   res.status(404).json({
     status: "error",
     message: "Error 404: Page Not Found",
-    errors: ["Page Not Found"],
+    errors: null,
   });
 });
 
+// Middleware de erro global
 app.use(errorHandler);
 
 app.listen(5000, () => {

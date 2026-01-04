@@ -7,7 +7,8 @@ export const errorHandler = (
   req: Request,
   res: Response,
   next: NextFunction,
-) => {
+): Response => {
+  // verifica se é um erro do Zod
   if (error instanceof z.ZodError) {
     return res.status(400).json({
       status: "error",
@@ -16,11 +17,12 @@ export const errorHandler = (
     });
   }
 
+  // Verifica se é um erro esperado
   if (error instanceof AppError) {
     return res.status(error.statusCode).json({
       status: "error",
       message: error.message,
-      errors: error.errors,
+      errors: null,
     });
   }
 
@@ -29,6 +31,6 @@ export const errorHandler = (
   return res.status(500).json({
     status: "error",
     message: "Ocorreu um erro interno no servidor",
-    errors: [],
+    errors: null,
   });
 };

@@ -1,10 +1,11 @@
 import { z } from "zod";
 import { passwordSchema } from "./zod.schemas.js";
 
-export const createRegisterSchema = z
+// DTO para registro de usuário
+export const registerSchema = z
   .object({
     name: z.string(),
-    email: z.email("Formato de Email Inválido").trim().toLowerCase(),
+    email: z.string().trim().toLowerCase().email("Formato de Email Inválido"),
     password: passwordSchema,
     confirmPassword: z.string(),
   })
@@ -13,4 +14,12 @@ export const createRegisterSchema = z
     path: ["confirmPassword"],
   });
 
-export type RegisterUserDTO = z.infer<typeof createRegisterSchema>;
+export type RegisterUserDTO = z.infer<typeof registerSchema>;
+
+// DTO para login
+export const loginSchema = z.object({
+  email: z.string().trim().toLowerCase(),
+  password: z.string(),
+});
+
+export type LoginUserDTO = z.infer<typeof loginSchema>;
