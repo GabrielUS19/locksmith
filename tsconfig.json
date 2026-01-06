@@ -8,6 +8,8 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
 
+    "typeRoots": ["./node_modules/@types", "./src/@types"],
+
     "rootDir": "./src",
     "outDir": "./build"
   },

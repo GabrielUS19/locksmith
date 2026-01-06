@@ -3,9 +3,13 @@ import type { LoginUserDTO, RegisterUserDTO } from "../utils/auth.schemas.js";
 import { AppError } from "../errors/app.error.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { User } from "@prisma/client";
-import { generateRefreshToken } from "../utils/refreshtoken.js";
+import { RefreshToken, User } from "@prisma/client";
+import {
+  generateRefreshToken,
+  hashToken,
+} from "../utils/refreshtoken.generate.js";
 import { LoginResponse } from "../interfaces/auth.interfaces.js";
+import { env } from "../utils/env.schema.js";
 
 export class RegisterService {
   public execute = async (data: RegisterUserDTO): Promise<User> => {
@@ -52,20 +56,70 @@ export class LoginService {
       throw new AppError("Email ou senha inválidos", 401);
     }
 
-    const accessToken = jwt.sign(
-      { sub: user.id },
-      process.env.JWT_SECRET as string,
-      {
-        expiresIn: "15m",
-      },
-    );
+    const accessToken = jwt.sign({ sub: user.id }, env.JWT_SECRET, {
+      expiresIn: "15m",
+    });
 
-    const { rawToken, hashToken, expiresAt } = generateRefreshToken();
+    const { rawToken, hashedToken, expiresAt } = generateRefreshToken();
 
     await prisma.refreshToken.create({
       data: {
-        token: hashToken,
+        token: hashedToken,
         userID: user.id,
+        expiresAt: expiresAt,
+      },
+    });
+
+    return { accessToken, rawToken, expiresAt };
+  };
+}
+
+// Service para Refresh Token
+
+export class RefreshTokenService {
+  public execute = async (token: string): Promise<LoginResponse> => {
+    const inputToken = hashToken(token);
+
+    const refreshToken: RefreshToken | null =
+      await prisma.refreshToken.findUnique({
+        where: {
+          token: inputToken,
+        },
+      });
+
+    if (!refreshToken) {
+      throw new AppError("Refresh Token não encontrado", 401);
+    }
+
+    if (refreshToken.revoked) {
+      await prisma.refreshToken.deleteMany({
+        where: {
+          userID: refreshToken.userID,
+        },
+      });
+
+      throw new AppError("RefreshToken Revogado");
+    }
+
+    await prisma.refreshToken.update({
+      where: {
+        id: refreshToken.id,
+      },
+      data: {
+        revoked: true,
+      },
+    });
+
+    const accessToken = jwt.sign({ sub: refreshToken.userID }, env.JWT_SECRET, {
+      expiresIn: "15m",
+    });
+
+    const { rawToken, hashedToken, expiresAt } = generateRefreshToken();
+
+    await prisma.refreshToken.create({
+      data: {
+        token: hashedToken,
+        userID: refreshToken.userID,
         expiresAt: expiresAt,
       },
     });
