@@ -1,8 +1,15 @@
 import { Request, Response } from "express";
-import { LoginService, RegisterService } from "../services/auth.services.js";
+import {
+  LoginService,
+  RefreshTokenService,
+  RegisterService,
+} from "../services/auth.services.js";
 import type { LoginUserDTO, RegisterUserDTO } from "../utils/auth.schemas.js";
+import { AppError } from "../errors/app.error.js";
+import strict from "node:assert/strict";
 
 export default class AuthController {
+  // Controller para rota de login
   public login = async (req: Request, res: Response): Promise<void> => {
     const data: LoginUserDTO = req.body;
 
@@ -12,7 +19,7 @@ export default class AuthController {
 
     res.cookie("refreshToken", rawToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       sameSite: "strict",
       expires: expiresAt,
     });
@@ -22,7 +29,7 @@ export default class AuthController {
       .json({ message: `Bem vindo de volta`, accessToken: accessToken });
   };
 
-  // Controller da rota de registro
+  // Controller para rota de registro
   public register = async (req: Request, res: Response): Promise<void> => {
     const data: RegisterUserDTO = req.body;
 
@@ -30,5 +37,29 @@ export default class AuthController {
     const user = await registerService.execute(data);
 
     res.status(201).json({ message: `User ${user.name} created successfuly` });
+  };
+
+  // Controller para endpoint de Refresh Token
+  public refreshToken = async (req: Request, res: Response): Promise<void> => {
+    const token: string = req.cookies.refreshToken;
+
+    if (!token) {
+      throw new AppError("Token não enviado", 401);
+    }
+
+    const refreshTokenService = new RefreshTokenService();
+    const { accessToken, rawToken, expiresAt } =
+      await refreshTokenService.execute(token);
+
+    res.cookie("refreshToken", rawToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      expires: expiresAt,
+    });
+
+    res
+      .status(200)
+      .json({ message: "Access Token renovado", accessToken: accessToken });
   };
 }

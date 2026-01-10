@@ -10,12 +10,6 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-app.get("/test", (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
-
-  console.log(refreshToken);
-});
-
 // Routes
 app.use("/auth", authRoutes);
 
