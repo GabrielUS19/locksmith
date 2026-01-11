@@ -4,7 +4,7 @@ import { env } from "../utils/env.schema.js";
 import { TokenPayload } from "../interfaces/auth.interfaces.js";
 import { AppError } from "../errors/app.error.js";
 
-export const jwtvalidade = (
+export const jwtvalidate = (
   req: Request,
   res: Response,
   next: NextFunction,

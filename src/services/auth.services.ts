@@ -80,21 +80,22 @@ export class RefreshTokenService {
   public execute = async (token: string): Promise<LoginResponse> => {
     const inputToken = hashToken(token);
 
-    const refreshToken: RefreshToken | null =
+    const refreshTokenExists: RefreshToken | null =
       await prisma.refreshToken.findUnique({
         where: {
           token: inputToken,
         },
       });
 
-    if (!refreshToken) {
+    if (!refreshTokenExists) {
       throw new AppError("Refresh Token não encontrado", 401);
     }
 
-    if (refreshToken.revoked) {
+    // Detecta reuso e apaga todos os Refresh Tokens do usuário
+    if (refreshTokenExists.revoked) {
       await prisma.refreshToken.deleteMany({
         where: {
-          userID: refreshToken.userID,
+          userID: refreshTokenExists.userID,
         },
       });
 
@@ -103,27 +104,59 @@ export class RefreshTokenService {
 
     await prisma.refreshToken.update({
       where: {
-        id: refreshToken.id,
+        id: refreshTokenExists.id,
       },
       data: {
         revoked: true,
       },
     });
 
-    const accessToken = jwt.sign({ sub: refreshToken.userID }, env.JWT_SECRET, {
-      expiresIn: "15m",
-    });
+    const accessToken = jwt.sign(
+      { sub: refreshTokenExists.userID },
+      env.JWT_SECRET,
+      {
+        expiresIn: "15m",
+      },
+    );
 
     const { rawToken, hashedToken, expiresAt } = generateRefreshToken();
 
     await prisma.refreshToken.create({
       data: {
         token: hashedToken,
-        userID: refreshToken.userID,
+        userID: refreshTokenExists.userID,
         expiresAt: expiresAt,
       },
     });
 
     return { accessToken, rawToken, expiresAt };
+  };
+}
+
+// Service para logout
+export class LogoutService {
+  public execute = async (refreshToken: string): Promise<void> => {
+    const inputToken = hashToken(refreshToken);
+
+    const refreshTokenExists = await prisma.refreshToken.findUnique({
+      where: {
+        token: inputToken,
+      },
+    });
+
+    if (!refreshTokenExists) {
+      return;
+    }
+
+    await prisma.refreshToken.update({
+      where: {
+        id: refreshTokenExists.id,
+      },
+      data: {
+        revoked: true,
+      },
+    });
+
+    return;
   };
 }

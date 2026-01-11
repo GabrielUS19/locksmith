@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
 import {
   LoginService,
+  LogoutService,
   RefreshTokenService,
   RegisterService,
 } from "../services/auth.services.js";
 import type { LoginUserDTO, RegisterUserDTO } from "../utils/auth.schemas.js";
 import { AppError } from "../errors/app.error.js";
-import strict from "node:assert/strict";
 
 export default class AuthController {
   // Controller para rota de login
@@ -39,9 +39,9 @@ export default class AuthController {
     res.status(201).json({ message: `User ${user.name} created successfuly` });
   };
 
-  // Controller para endpoint de Refresh Token
+  // Controller para rota de Refresh Token
   public refreshToken = async (req: Request, res: Response): Promise<void> => {
-    const token: string = req.cookies.refreshToken;
+    const token: string | null = req.cookies.refreshToken;
 
     if (!token) {
       throw new AppError("Token não enviado", 401);
@@ -61,5 +61,27 @@ export default class AuthController {
     res
       .status(200)
       .json({ message: "Access Token renovado", accessToken: accessToken });
+  };
+
+  // Controller para rota de logout
+  public logout = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const refreshToken: string | null = req.cookies.refreshToken;
+
+      if (!refreshToken) {
+        res.status(204).send();
+        return;
+      }
+
+      const logoutService = new LogoutService();
+      await logoutService.execute(refreshToken);
+
+      res.clearCookie("refreshToken");
+
+      res.sendStatus(204);
+    } catch (error) {
+      console.error(`Erro no logout: ${error}`);
+      res.sendStatus(204);
+    }
   };
 }
