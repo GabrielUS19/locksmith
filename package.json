@@ -10,7 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/GabrielUS19/locksmith.git"
   },
-  "license": "ISC",
+  "license": "MIT",
   "author": "Gabriel Uchoa",
   "type": "module",
   "main": "server.ts",
