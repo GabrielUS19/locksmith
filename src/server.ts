@@ -2,6 +2,7 @@ import "dotenv/config";
 import cookieParser from "cookie-parser";
 import express, { type Response, type Request } from "express";
 import authRoutes from "./routes/auth.routes.js";
+import usersRoutes from "./routes/users.routes.js";
 import { errorHandler } from "./middlewares/errorHandler.middleware.js";
 
 const app = express();
@@ -12,6 +13,7 @@ app.use(cookieParser());
 
 // Routes
 app.use("/auth", authRoutes);
+app.use("/users", usersRoutes);
 
 // 404 EndPoint
 app.use((req: Request, res: Response): void => {
