@@ -1,0 +1,15 @@
+node_modules
+build
+
+.env
+/generated/prisma
+.env.example
+LICENSE
+README.md
+
+
+.dockerignore
+Dockerfile
+
+.gitignore
+.git
