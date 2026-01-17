@@ -28,6 +28,8 @@ O sistema implementa autenticação via JWT (JSON Web Token) com estratégia de 
 
 #### Como instalar
 
+Configure o CORS no server.ts, adicionando as origins que podem acessar a API.
+
 Rode os seguinte comandos no terminal.
 
 ```bash
@@ -45,6 +47,8 @@ Observação: Altere os campos dos .env caso queria mudar as credenciais.
 - Banco de Dados PostgreSQL
 
 #### Como instalar
+
+Configure o CORS no server.ts, adicionando as origins que podem acessar a API.
 
 Rode os seguinte comandos no terminal.
 
